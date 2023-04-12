@@ -2,6 +2,7 @@ package ru.mpei.data.di
 
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.factoryOf
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import ru.mpei.data.repositories.CryptoRepositoryImpl
 import ru.mpei.data.repositories.FileRepositoryImpl
@@ -14,8 +15,13 @@ import ru.mpei.domain.repositories.KeyStoreRepository
 
 val repositoriesModule = module {
 
-    factoryOf(::CryptoRepositoryImpl) {
-        bind<CryptoRepository>()
+    factory<CryptoRepository> {
+        CryptoRepositoryImpl(
+            keySignature = get(qualifier = named("key")),
+            fileSignature = get(qualifier = named("file")),
+            secureRandom = get(),
+            keyFactory = get()
+        )
     }
 
     factoryOf(::FileRepositoryImpl) {
@@ -26,7 +32,14 @@ val repositoriesModule = module {
         bind<KeyStoreRepository>()
     }
 
-    factoryOf(::KeyRepositoryImpl) {
-        bind<KeyRepository>()
+    factory<KeyRepository> {
+        KeyRepositoryImpl(
+            keyStoreRepository = get(),
+            keyPairGeneratorDSA = get(qualifier = named(name = "DSA")),
+            keyPairGeneratorRSA = get(qualifier = named(name = "RSA")),
+            externalKeyMapper = get(),
+            internalKeyMapper = get(),
+            cryptoRepository = get()
+        )
     }
 }

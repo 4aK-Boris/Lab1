@@ -22,7 +22,7 @@ class FileUseCases(
     suspend fun saveFileUseCase(nickName: String, text: String) {
         checkNickName(nickName = nickName)
         val file = fileRepository.chooseFile()
-        val privateKey = keyStoreRepository.getPrivateKey(nickName = nickName)
+        val privateKey = keyStoreRepository.getFilePrivateKey(nickName = nickName)
         fileRepository.saveFile(
             nickName = nickName,
             data = text.encodeToByteArray(),

@@ -17,7 +17,7 @@ class FileRepositoryImpl(
     private val fileMapper: FileMapper
 ) : FileRepository {
     override suspend fun saveFile(file: File, nickName: String, data: ByteArray, privateKey: PrivateKey) {
-        val signature = cryptoRepository.createSignature(data = data, privateKey = privateKey)
+        val signature = cryptoRepository.createFileSignature(data = data, privateKey = privateKey)
         val fileModel = FileModel(nickName = nickName, data = data, signature = signature)
         val fileDTO = fileMapper.map(fileModel = fileModel)
         file.writeBytes(fileDTO.file)
@@ -28,7 +28,7 @@ class FileRepositoryImpl(
         val fileDTO = FileDTO(file = file.readBytes())
         val fileModel = fileMapper.map(fileDTO = fileDTO)
         val result =
-            cryptoRepository.verifySignature(data = fileModel.data, sign = fileModel.signature, publicKey = publicKey)
+            cryptoRepository.verifyFileSignature(data = fileModel.data, sign = fileModel.signature, publicKey = publicKey)
         if (!result) throw Lab1Exception("Подпись файла не прошла проверку!")
         return fileModel
     }

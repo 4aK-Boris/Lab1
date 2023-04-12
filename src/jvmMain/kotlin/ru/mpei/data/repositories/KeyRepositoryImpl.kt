@@ -18,22 +18,23 @@ import ru.mpei.domain.repositories.KeyStoreRepository
 
 class KeyRepositoryImpl(
     private val keyStoreRepository: KeyStoreRepository,
-    private val keyPairGenerator: KeyPairGenerator,
+    private val keyPairGeneratorRSA: KeyPairGenerator,
+    private val keyPairGeneratorDSA: KeyPairGenerator,
     private val externalKeyMapper: ExternalKeyMapper,
     private val internalKeyMapper: InternalKeyMapper,
     private val cryptoRepository: CryptoRepository
 ) : KeyRepository {
 
     override suspend fun exportKeyFromKeyStore(path: String, nickName: String) {
-        val key = keyStoreRepository.getPublicKey(nickName = nickName)
+        val key = keyStoreRepository.getFilePublicKey(nickName = nickName)
         val keyModel = ExternalKeyModel(nickName = nickName, key = key.encoded)
         writeExternalKey(path = path, keyModel = keyModel)
     }
 
     override suspend fun exportKey(nickName: String, path: String) {
         val internalKeyModel = readInternalKey(nickName = nickName)
-        val publicKey = keyStoreRepository.getPublicKey(nickName = nickName)
-        val verify = cryptoRepository.verifySignature(
+        val publicKey = keyStoreRepository.getKeyPublicKey(nickName = nickName)
+        val verify = cryptoRepository.verifyKeySignature(
             data = internalKeyModel.key,
             sign = internalKeyModel.signature,
             publicKey = publicKey
@@ -49,22 +50,24 @@ class KeyRepositoryImpl(
     }
 
     override suspend fun importKey(file: File, nickName: String) {
-        val privateKey = keyStoreRepository.getPrivateKey(nickName = nickName)
+        val privateKey = keyStoreRepository.getKeyPrivateKey(nickName = nickName)
         val keyModel = if (file.name.endsWith(".SD")) {
             val internalKeyModel = readInternalKey(file = file)
-            val signature = cryptoRepository.createSignature(data = internalKeyModel.key, privateKey = privateKey)
+            val signature = cryptoRepository.createKeySignature(data = internalKeyModel.key, privateKey = privateKey)
             internalKeyModel.copy(signature = signature)
         } else  {
             val externalKeyModel = readExternalKey(file = file)
-            val signature = cryptoRepository.createSignature(data = externalKeyModel.key, privateKey = privateKey)
+            val signature = cryptoRepository.createKeySignature(data = externalKeyModel.key, privateKey = privateKey)
             InternalKeyModel(nickName = externalKeyModel.nickName, key = externalKeyModel.key, signature = signature)
         }
         writeInternalKey(keyModel = keyModel)
     }
 
     override suspend fun createKeyPair(nickName: String) {
-        val keyPair = keyPairGenerator.generateKeyPair()
-        keyStoreRepository.addKeyPair(keyPair = keyPair, nickName = nickName)
+        val keyPairDSA = keyPairGeneratorDSA.generateKeyPair()
+        val keyPairRSA = keyPairGeneratorRSA.generateKeyPair()
+        keyStoreRepository.addFileKeyPair(keyPair = keyPairDSA, nickName = nickName)
+        keyStoreRepository.addKeyKeyPair(keyPair = keyPairRSA, nickName = nickName)
         keyStoreRepository.save()
     }
 

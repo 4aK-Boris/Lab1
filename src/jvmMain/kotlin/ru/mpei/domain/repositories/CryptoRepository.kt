@@ -5,13 +5,13 @@ import java.security.PublicKey
 
 interface CryptoRepository {
 
-    fun createMessageDigest(data: ByteArray): ByteArray
+    fun createKeySignature(data: ByteArray, privateKey: PrivateKey): ByteArray
 
-    fun verifyMessageDigest(data: ByteArray, hash: ByteArray): Boolean
+    fun verifyKeySignature(data: ByteArray, sign: ByteArray, publicKey: PublicKey): Boolean
 
-    fun createSignature(data: ByteArray, privateKey: PrivateKey): ByteArray
+    fun createFileSignature(data: ByteArray, privateKey: PrivateKey): ByteArray
 
-    fun verifySignature(data: ByteArray, sign: ByteArray, publicKey: PublicKey): Boolean
+    fun verifyFileSignature(data: ByteArray, sign: ByteArray, publicKey: PublicKey): Boolean
 
     fun createPublicKey(key: ByteArray): PublicKey
 }

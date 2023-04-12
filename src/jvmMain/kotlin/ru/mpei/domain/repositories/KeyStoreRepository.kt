@@ -10,11 +10,16 @@ interface KeyStoreRepository {
 
     suspend fun save()
 
-    suspend fun addKeyPair(keyPair: KeyPair, nickName: String)
+    suspend fun addFileKeyPair(keyPair: KeyPair, nickName: String)
 
-    suspend fun getPrivateKey(nickName: String): PrivateKey
+    suspend fun addKeyKeyPair(keyPair: KeyPair, nickName: String)
 
-    suspend fun getPublicKey(nickName: String): PublicKey
+    suspend fun getKeyPrivateKey(nickName: String): PrivateKey
+
+    suspend fun getFilePrivateKey(nickName: String): PrivateKey
+    suspend fun getKeyPublicKey(nickName: String): PublicKey
+
+    suspend fun getFilePublicKey(nickName: String): PublicKey
 
     suspend fun deleteKeyPair(nickName: String)
 }
